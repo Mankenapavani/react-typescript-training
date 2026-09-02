@@ -1,15 +1,7 @@
-import Header from './components/Header'
-import Content from './components/Content'
-import Footer from './components/Footer'
+import EmployeeManagement from "./components/EmployeeManagement";
 
 function App() {
-  return (
-    <>
-      <Header title="My React Application" />
-      <Content message="This is the main content." />
-      <Footer year={2026} />
-    </>
-  )
+  return <EmployeeManagement />;
 }
 
-export default App
+export default App;

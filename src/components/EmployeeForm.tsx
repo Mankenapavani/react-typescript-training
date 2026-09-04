@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Employee } from "../types";
+import { createEmployee } from "../services/employeeService";
 
 interface EmployeeFormProps {
   onAddEmployee: (employee: Employee) => void;
@@ -10,29 +11,48 @@ function EmployeeForm({ onAddEmployee }: EmployeeFormProps) {
   const [email, setEmail] = useState<string>("");
   const [role, setRole] = useState<string>("");
   const [active, setActive] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
-    const newEmployee: Employee = {
-      id: Date.now(),
-      name,
-      email,
-      role,
-      active,
-    };
+    if (!name || !email || !role) {
+      setError("Please fill in all fields.");
+      return;
+    }
 
-    onAddEmployee(newEmployee);
+    try {
+      setLoading(true);
+      setError("");
 
-    setName("");
-    setEmail("");
-    setRole("");
-    setActive(true);
+      const newEmployee = await createEmployee({
+        name,
+        email,
+        role,
+        active,
+      });
+
+      onAddEmployee(newEmployee);
+
+      setName("");
+      setEmail("");
+      setRole("");
+      setActive(true);
+    } catch (error) {
+      setError("Failed to add employee.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit}>
       <h2>Add Employee</h2>
+
+      {error && <p>{error}</p>}
 
       <input
         type="text"
@@ -57,13 +77,17 @@ function EmployeeForm({ onAddEmployee }: EmployeeFormProps) {
 
       <select
         value={active ? "Active" : "Inactive"}
-        onChange={(event) => setActive(event.target.value === "Active")}
+        onChange={(event) =>
+          setActive(event.target.value === "Active")
+        }
       >
         <option value="Active">Active</option>
         <option value="Inactive">Inactive</option>
       </select>
 
-      <button type="submit">Add Employee</button>
+      <button type="submit" disabled={loading}>
+        {loading ? "Adding..." : "Add Employee"}
+      </button>
     </form>
   );
 }

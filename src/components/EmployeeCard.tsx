@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { Employee } from "../types";
 
 interface EmployeeCardProps {
@@ -55,28 +56,26 @@ function EmployeeCard({
 
         <select
           value={active ? "Active" : "Inactive"}
-          onChange={(event) =>
-            setActive(event.target.value === "Active")
-          }
+          onChange={(event) => setActive(event.target.value === "Active")}
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
 
-        <button onClick={handleUpdate}>
-          Update
-        </button>
+        <button onClick={handleUpdate}>Update</button>
 
-        <button onClick={() => setIsEditing(false)}>
-          Cancel
-        </button>
+        <button onClick={() => setIsEditing(false)}>Cancel</button>
       </div>
     );
   }
 
   return (
     <div>
-      <h3>{employee.name}</h3>
+      <h3>
+        <Link to={`/employees/${employee.id}`}>
+          {employee.name}
+        </Link>
+      </h3>
 
       <p>Email: {employee.email}</p>
 

@@ -101,17 +101,38 @@ function EmployeeManagement() {
   );
 
   return (
-    <div>
+    <div
+      style={{
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "40px 20px",
+      }}
+    >
       <h1>Employee Management</h1>
 
-      <input
-        type="text"
-        placeholder="Search employee"
-        value={search}
-        onChange={(event) =>
-          setSearch(event.target.value)
-        }
-      />
+      <p>
+        Manage your employees, update their information,
+        and view their details.
+      </p>
+
+      <div style={{ marginTop: "30px" }}>
+        <input
+          type="text"
+          placeholder="Search employee"
+          value={search}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
+          style={{
+            width: "100%",
+            maxWidth: "400px",
+            padding: "12px",
+            border: "1px solid #ccc",
+            borderRadius: "8px",
+            fontSize: "16px",
+          }}
+        />
+      </div>
 
       {loading && <p>Loading employees...</p>}
 
@@ -120,17 +141,19 @@ function EmployeeManagement() {
       {success && <p>{success}</p>}
 
       {!loading && !error && (
-        <>
+        <div style={{ marginTop: "30px" }}>
           <EmployeeForm
             onAddEmployee={handleAddEmployee}
           />
 
-          <EmployeeList
-            employees={filteredEmployees}
-            onDelete={handleDeleteEmployee}
-            onUpdate={handleUpdateEmployee}
-          />
-        </>
+          <div style={{ marginTop: "40px" }}>
+            <EmployeeList
+              employees={filteredEmployees}
+              onDelete={handleDeleteEmployee}
+              onUpdate={handleUpdateEmployee}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

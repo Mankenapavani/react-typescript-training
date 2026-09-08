@@ -1,104 +1,120 @@
-import { useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { Employee } from "../types";
 import {
-  getEmployees,
   updateEmployee,
   deleteEmployee,
 } from "../services/employeeService";
+import useFetch from "../hooks/useFetch";
+import useDebounce from "../hooks/useDebounce";
 import EmployeeForm from "./EmployeeForm";
 import EmployeeList from "./EmployeeList";
 
 function EmployeeManagement() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [search, setSearch] = useState<string>("");
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<string>("");
 
-  // GET API
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const API_URL = import.meta.env.VITE_API_URL;
+
+  // useFetch
+  const {
+    data,
+    loading,
+    error,
+  } = useFetch<Employee[]>(API_URL);
+
+  // useDebounce
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Update employees when API data arrives
   useEffect(() => {
-    const loadEmployees = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    if (data) {
+      setEmployees(data);
+    }
+  }, [data]);
 
-        const data = await getEmployees();
-
-        setEmployees(data);
-      } catch (error) {
-        setError("Failed to load employees.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadEmployees();
+  // Focus search input when page loads
+  useEffect(() => {
+    searchInputRef.current?.focus();
   }, []);
 
   // POST API
-  const handleAddEmployee = (employee: Employee) => {
+  const handleAddEmployee = useCallback((employee: Employee) => {
     setEmployees((currentEmployees) => [
       ...currentEmployees,
       employee,
     ]);
 
     setSuccess("Employee added successfully!");
-  };
+  }, []);
 
   // PUT API
-  const handleUpdateEmployee = async (employee: Employee) => {
-    try {
-      setError("");
-      setSuccess("");
+  const handleUpdateEmployee = useCallback(
+    async (employee: Employee) => {
+      try {
+        setSuccess("");
 
-      const updatedEmployee = await updateEmployee(employee.id, {
-        name: employee.name,
-        email: employee.email,
-        role: employee.role,
-        active: employee.active,
-      });
+        const updatedEmployee = await updateEmployee(employee.id, {
+          name: employee.name,
+          email: employee.email,
+          role: employee.role,
+          active: employee.active,
+        });
 
-      setEmployees((currentEmployees) =>
-        currentEmployees.map((currentEmployee) =>
-          currentEmployee.id === employee.id
-            ? updatedEmployee
-            : currentEmployee
-        )
-      );
+        setEmployees((currentEmployees) =>
+          currentEmployees.map((currentEmployee) =>
+            currentEmployee.id === employee.id
+              ? updatedEmployee
+              : currentEmployee
+          )
+        );
 
-      setSuccess("Employee updated successfully!");
-    } catch (error) {
-      setError("Failed to update employee.");
-    }
-  };
+        setSuccess("Employee updated successfully!");
+      } catch (error) {
+        setSuccess("");
+      }
+    },
+    []
+  );
 
   // DELETE API
-  const handleDeleteEmployee = async (id: number) => {
-    try {
-      setError("");
-      setSuccess("");
+  const handleDeleteEmployee = useCallback(
+    async (id: number) => {
+      try {
+        setSuccess("");
 
-      await deleteEmployee(id);
+        await deleteEmployee(id);
 
-      setEmployees((currentEmployees) =>
-        currentEmployees.filter(
-          (employee) => employee.id !== id
-        )
-      );
+        setEmployees((currentEmployees) =>
+          currentEmployees.filter(
+            (employee) => employee.id !== id
+          )
+        );
 
-      setSuccess("Employee deleted successfully!");
-    } catch (error) {
-      setError("Failed to delete employee.");
-    }
-  };
-
-  // SEARCH
-  const filteredEmployees = employees.filter((employee) =>
-    employee.name
-      .toLowerCase()
-      .includes(search.toLowerCase())
+        setSuccess("Employee deleted successfully!");
+      } catch (error) {
+        setSuccess("");
+      }
+    },
+    []
   );
+
+  // useMemo
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((employee) =>
+      employee.name
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase())
+    );
+  }, [employees, debouncedSearch]);
 
   return (
     <div
@@ -117,6 +133,7 @@ function EmployeeManagement() {
 
       <div style={{ marginTop: "30px" }}>
         <input
+          ref={searchInputRef}
           type="text"
           placeholder="Search employee"
           value={search}

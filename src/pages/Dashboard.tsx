@@ -1,11 +1,20 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { getEmployees } from "../services/employeeService";
 import type { Employee } from "../types";
+import AppContext from "../context/AppContext";
 
 function Dashboard() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const context = useContext(AppContext);
+
+  if (!context) {
+    return null;
+  }
+
+  const { state } = context;
 
   useEffect(() => {
     const loadEmployees = async () => {
@@ -52,10 +61,14 @@ function Dashboard() {
 
       <p>Welcome to the Employee Management Dashboard.</p>
 
+      <p>
+        Welcome, <strong>{state.user || "Guest"}</strong>!
+      </p>
+
       <div
         style={{
           display: "grid",
-         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: "24px",
           marginTop: "40px",
         }}

@@ -1,14 +1,24 @@
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import useLocalStorage from "../hooks/useLocalStorage";
+import AppContext from "../context/AppContext";
 
 function Login() {
   const navigate = useNavigate();
 
-  const [isAuthenticated, setIsAuthenticated] =
-    useLocalStorage<boolean>("isAuthenticated", false);
+  const context = useContext(AppContext);
+
+  if (!context) {
+    return null;
+  }
+
+  const { state, dispatch } = context;
 
   const handleLogin = () => {
-    setIsAuthenticated(true);
+    dispatch({
+      type: "LOGIN",
+      payload: "Pavani",
+    });
+
     navigate("/dashboard");
   };
 
@@ -19,7 +29,14 @@ function Login() {
       <p>Welcome to the Employee Management Dashboard</p>
 
       <p>
-        Status: {isAuthenticated ? "Logged in" : "Not logged in"}
+        Status:{" "}
+        {state.isAuthenticated
+          ? "Logged in"
+          : "Not logged in"}
+      </p>
+
+      <p>
+        User: {state.user || "No user logged in"}
       </p>
 
       <button onClick={handleLogin}>

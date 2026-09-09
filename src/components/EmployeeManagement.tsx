@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -14,6 +15,7 @@ import useFetch from "../hooks/useFetch";
 import useDebounce from "../hooks/useDebounce";
 import EmployeeForm from "./EmployeeForm";
 import EmployeeList from "./EmployeeList";
+import AppContext from "../context/AppContext";
 
 function EmployeeManagement() {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -22,52 +24,61 @@ function EmployeeManagement() {
 
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const context = useContext(AppContext);
+
+  if (!context) {
+    return null;
+  }
+
+  const { state } = context;
+  const isAdmin = state.user?.role === "admin";
+
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // useFetch
   const {
     data,
     loading,
     error,
   } = useFetch<Employee[]>(API_URL);
 
-  // useDebounce
   const debouncedSearch = useDebounce(search, 500);
 
-  // Update employees when API data arrives
   useEffect(() => {
     if (data) {
       setEmployees(data);
     }
   }, [data]);
 
-  // Focus search input when page loads
   useEffect(() => {
     searchInputRef.current?.focus();
   }, []);
 
-  // POST API
-  const handleAddEmployee = useCallback((employee: Employee) => {
-    setEmployees((currentEmployees) => [
-      ...currentEmployees,
-      employee,
-    ]);
+  const handleAddEmployee = useCallback(
+    (employee: Employee) => {
+      setEmployees((currentEmployees) => [
+        ...currentEmployees,
+        employee,
+      ]);
 
-    setSuccess("Employee added successfully!");
-  }, []);
+      setSuccess("Employee added successfully!");
+    },
+    []
+  );
 
-  // PUT API
   const handleUpdateEmployee = useCallback(
     async (employee: Employee) => {
       try {
         setSuccess("");
 
-        const updatedEmployee = await updateEmployee(employee.id, {
-          name: employee.name,
-          email: employee.email,
-          role: employee.role,
-          active: employee.active,
-        });
+        const updatedEmployee = await updateEmployee(
+          employee.id,
+          {
+            name: employee.name,
+            email: employee.email,
+            role: employee.role,
+            active: employee.active,
+          }
+        );
 
         setEmployees((currentEmployees) =>
           currentEmployees.map((currentEmployee) =>
@@ -85,7 +96,6 @@ function EmployeeManagement() {
     []
   );
 
-  // DELETE API
   const handleDeleteEmployee = useCallback(
     async (id: number) => {
       try {
@@ -107,7 +117,6 @@ function EmployeeManagement() {
     []
   );
 
-  // useMemo
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) =>
       employee.name
@@ -159,15 +168,31 @@ function EmployeeManagement() {
 
       {!loading && !error && (
         <div style={{ marginTop: "30px" }}>
-          <EmployeeForm
-            onAddEmployee={handleAddEmployee}
-          />
+          {isAdmin && (
+            <EmployeeForm
+              onAddEmployee={handleAddEmployee}
+            />
+          )}
+
+          {!isAdmin && (
+            <p>
+              You have view-only access to the employee list.
+            </p>
+          )}
 
           <div style={{ marginTop: "40px" }}>
             <EmployeeList
               employees={filteredEmployees}
-              onDelete={handleDeleteEmployee}
-              onUpdate={handleUpdateEmployee}
+              onDelete={
+                isAdmin
+                  ? handleDeleteEmployee
+                  : undefined
+              }
+              onUpdate={
+                isAdmin
+                  ? handleUpdateEmployee
+                  : undefined
+              }
             />
           </div>
         </div>

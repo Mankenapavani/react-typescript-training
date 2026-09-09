@@ -4,8 +4,8 @@ import type { Employee } from "../types";
 
 interface EmployeeCardProps {
   employee: Employee;
-  onDelete: (id: number) => void;
-  onUpdate: (employee: Employee) => void;
+  onDelete?: (id: number) => void;
+  onUpdate?: (employee: Employee) => void;
 }
 
 function EmployeeCard({
@@ -21,6 +21,10 @@ function EmployeeCard({
   const [active, setActive] = useState<boolean>(employee.active);
 
   const handleUpdate = () => {
+    if (!onUpdate) {
+      return;
+    }
+
     const updatedEmployee: Employee = {
       id: employee.id,
       name,
@@ -56,15 +60,21 @@ function EmployeeCard({
 
         <select
           value={active ? "Active" : "Inactive"}
-          onChange={(event) => setActive(event.target.value === "Active")}
+          onChange={(event) =>
+            setActive(event.target.value === "Active")
+          }
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
         </select>
 
-        <button onClick={handleUpdate}>Update</button>
+        <button onClick={handleUpdate}>
+          Update
+        </button>
 
-        <button onClick={() => setIsEditing(false)}>Cancel</button>
+        <button onClick={() => setIsEditing(false)}>
+          Cancel
+        </button>
       </div>
     );
   }
@@ -85,13 +95,17 @@ function EmployeeCard({
         Status: {employee.active ? "Active" : "Inactive"}
       </p>
 
-      <button onClick={() => setIsEditing(true)}>
-        Edit
-      </button>
+      {onUpdate && (
+        <button onClick={() => setIsEditing(true)}>
+          Edit
+        </button>
+      )}
 
-      <button onClick={() => onDelete(employee.id)}>
-        Delete
-      </button>
+      {onDelete && (
+        <button onClick={() => onDelete(employee.id)}>
+          Delete
+        </button>
+      )}
     </div>
   );
 }

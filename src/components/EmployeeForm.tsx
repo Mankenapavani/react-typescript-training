@@ -1,26 +1,51 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+
 import type { Employee } from "../types";
+import type { EmployeeFormData } from "../types/forms";
+
 import { createEmployee } from "../services/employeeService";
+import FormField from "./FormField";
 
 interface EmployeeFormProps {
   onAddEmployee: (employee: Employee) => void;
 }
 
 function EmployeeForm({ onAddEmployee }: EmployeeFormProps) {
-  const [name, setName] = useState<string>("");
-  const [email, setEmail] = useState<string>("");
-  const [role, setRole] = useState<string>("");
-  const [active, setActive] = useState<boolean>(true);
+  const [formData, setFormData] = useState<EmployeeFormData>({
+    name: "",
+    email: "",
+    role: "",
+    active: true,
+  });
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleChange = (
+    field: keyof EmployeeFormData,
+    value: string | boolean
+  ) => {
+    setFormData((previous) => ({
+      ...previous,
+      [field]: value,
+    }));
+
+    setError("");
+  };
+
+  const handleSubmit = async (
+    event: FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
 
-    const trimmedName = name.trim();
-    const trimmedEmail = email.trim();
-    const trimmedRole = role.trim();
+    if (loading) {
+      return;
+    }
+
+    const trimmedName = formData.name.trim();
+    const trimmedEmail = formData.email.trim();
+    const trimmedRole = formData.role.trim();
 
     if (!trimmedName || !trimmedEmail || !trimmedRole) {
       setError("Please fill in all fields.");
@@ -42,110 +67,70 @@ function EmployeeForm({ onAddEmployee }: EmployeeFormProps) {
         name: trimmedName,
         email: trimmedEmail,
         role: trimmedRole,
-        active,
+        active: formData.active,
       });
 
       onAddEmployee(newEmployee);
 
-      setName("");
-      setEmail("");
-      setRole("");
-      setActive(true);
+      setFormData({
+        name: "",
+        email: "",
+        role: "",
+        active: true,
+      });
     } catch (error) {
-      setError("Failed to add employee.");
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        background: "#fff",
-        border: "1px solid #ddd",
-        borderRadius: "12px",
-        padding: "25px",
-      }}
-    >
-      <h2>Add Employee</h2>
+    <form onSubmit={handleSubmit}>
+      <FormField
+        label="Name"
+        type="text"
+        value={formData.name}
+        placeholder="Enter employee name"
+        onChange={(value) => handleChange("name", value)}
+      />
 
-      {error && (
-        <p style={{ marginBottom: "15px" }}>
-          {error}
-        </p>
-      )}
+      <FormField
+        label="Email"
+        type="email"
+        value={formData.email}
+        placeholder="Enter employee email"
+        onChange={(value) => handleChange("email", value)}
+      />
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: "15px",
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Employee Name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          style={{
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-          }}
-        />
+      <FormField
+        label="Role"
+        type="text"
+        value={formData.role}
+        placeholder="Enter employee role"
+        onChange={(value) => handleChange("role", value)}
+      />
 
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          style={{
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-          }}
-        />
-
-        <input
-          type="text"
-          placeholder="Role"
-          value={role}
-          onChange={(event) => setRole(event.target.value)}
-          style={{
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-          }}
-        />
-
-        <select
-          value={active ? "Active" : "Inactive"}
-          onChange={(event) =>
-            setActive(event.target.value === "Active")
-          }
-          style={{
-            padding: "12px",
-            border: "1px solid #ccc",
-            borderRadius: "8px",
-          }}
-        >
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
+      <div>
+        <label>
+          <input
+            type="checkbox"
+            checked={formData.active}
+            onChange={(event) =>
+              handleChange("active", event.target.checked)
+            }
+          />
+          {" "}Active
+        </label>
       </div>
 
-      <button
-        type="submit"
-        disabled={loading}
-        style={{
-          marginTop: "20px",
-          padding: "12px 20px",
-          border: "none",
-          borderRadius: "8px",
-        }}
-      >
+      {error && <p>{error}</p>}
+
+      <button type="submit" disabled={loading}>
         {loading ? "Adding..." : "Add Employee"}
       </button>
     </form>

@@ -62,13 +62,15 @@ function Dashboard() {
       <p>Welcome to the Employee Management Dashboard.</p>
 
       <p>
-        Welcome, <strong>{state.user || "Guest"}</strong>!
+        Welcome,{" "}
+        <strong>{state.user?.name || "Guest"}</strong>!
       </p>
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridTemplateColumns:
+            "repeat(auto-fit, minmax(220px, 1fr))",
           gap: "24px",
           marginTop: "40px",
         }}

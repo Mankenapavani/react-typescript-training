@@ -1,9 +1,17 @@
+import { useContext } from "react";
 import { Navigate, Outlet } from "react-router-dom";
+import AppContext from "../context/AppContext";
 
 function ProtectedRoute() {
-  const isAuthenticated = localStorage.getItem("isAuthenticated");
+  const context = useContext(AppContext);
 
-  if (!isAuthenticated) {
+  if (!context) {
+    return null;
+  }
+
+  const { state } = context;
+
+  if (!state.isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

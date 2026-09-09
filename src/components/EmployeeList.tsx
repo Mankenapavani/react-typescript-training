@@ -3,8 +3,8 @@ import EmployeeCard from "./EmployeeCard";
 
 interface EmployeeListProps {
   employees: Employee[];
-  onDelete: (id: number) => void;
-  onUpdate: (employee: Employee) => void;
+  onDelete?: (id: number) => void;
+  onUpdate?: (employee: Employee) => void;
 }
 
 function EmployeeList({

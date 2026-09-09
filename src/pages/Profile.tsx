@@ -1,10 +1,17 @@
+import { useContext } from "react";
+import AppContext from "../context/AppContext";
+import RegisterForm from "../components/RegisterForm";
+
 function Profile() {
-  const user = {
-    name: "Admin User",
-    email: "admin@example.com",
-    role: "Administrator",
-    department: "Management",
-  };
+  const context = useContext(AppContext);
+
+  if (!context) {
+    return null;
+  }
+
+  const { state } = context;
+
+  const user = state.user;
 
   return (
     <div
@@ -26,19 +33,34 @@ function Profile() {
           padding: "30px",
         }}
       >
-        <h2>{user.name}</h2>
+        <h2>{user?.name || "No user logged in"}</h2>
 
         <p>
-          <strong>Email:</strong> {user.email}
+          <strong>Role:</strong>{" "}
+          {user?.role || "No role assigned"}
         </p>
 
-        <p>
-          <strong>Role:</strong> {user.role}
-        </p>
+        {user?.role === "admin" && (
+          <div style={{ marginTop: "20px" }}>
+            <h3>Admin Access</h3>
+            <p>You have administrator permissions.</p>
+            <button>Manage Employees</button>
+          </div>
+        )}
+      </div>
 
-        <p>
-          <strong>Department:</strong> {user.department}
-        </p>
+      <div
+        style={{
+          marginTop: "40px",
+          border: "1px solid #ddd",
+          borderRadius: "12px",
+          padding: "30px",
+        }}
+      >
+        <h2>Create Account</h2>
+        <p>Test form validation and password confirmation.</p>
+
+        <RegisterForm />
       </div>
     </div>
   );
